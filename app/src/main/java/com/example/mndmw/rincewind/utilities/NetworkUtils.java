@@ -15,15 +15,14 @@ import java.util.Scanner;
 
 public class NetworkUtils {
     final static String LAVAEOLUS_BASE_URL =
-            "https://lavaeolus.herokuapps.com/api";
+            "https://lavaeolus.herokuapp.com/api";
 
     /**
-     * Builds the URL used to query GitHub.
+     * Builds the URL used to query Lavaeolus.
      *
-     * @param githubSearchQuery The keyword that will be queried for.
-     * @return The URL to use to query the GitHub.
+     * @return The URL to use to query Lavaeolus.
      */
-    public static URL buildUrl(String githubSearchQuery) {
+    public static URL buildUrl() {
         Uri builtUri = Uri.parse(LAVAEOLUS_BASE_URL).buildUpon()
                 .build();
 

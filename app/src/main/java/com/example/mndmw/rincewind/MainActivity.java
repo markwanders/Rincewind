@@ -11,6 +11,9 @@ import android.widget.Toast;
 
 import com.example.mndmw.rincewind.utilities.NetworkUtils;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.net.URL;
 
@@ -23,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mResultsTextView = (TextView) findViewById(R.id.results);
+        mResultsTextView = (TextView) findViewById(R.id.address);
     }
 
     @Override
@@ -59,7 +62,17 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String getResults) {
             if (getResults != null && !getResults.equals("")) {
-                mResultsTextView.setText(getResults);
+                try {
+                    JSONObject jsonObject = new JSONObject(getResults);
+                    mResultsTextView.append("Address: ");
+                    mResultsTextView.append(jsonObject.getString("accountAddress"));
+                    mResultsTextView.append("\n");
+                    mResultsTextView.append("Balance: ");
+                    mResultsTextView.append(String.valueOf(jsonObject.getLong("accountBalance")));
+                    mResultsTextView.append(" wei");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

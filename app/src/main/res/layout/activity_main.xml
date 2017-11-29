@@ -15,4 +15,10 @@
             android:textSize="20sp"/>
     </ScrollView>
 
+    <ProgressBar
+        android:id="@+id/loading_indicator"
+        android:layout_height="42dp"
+        android:layout_width="42dp"
+        android:layout_gravity="center"
+        android:visibility="invisible" />
 </FrameLayout>

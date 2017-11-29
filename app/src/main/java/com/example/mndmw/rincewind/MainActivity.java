@@ -1,13 +1,13 @@
 package com.example.mndmw.rincewind;
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.mndmw.rincewind.utilities.NetworkUtils;
 
@@ -21,12 +21,17 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView mResultsTextView;
 
+    private ProgressBar mLoadingIndicator;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         mResultsTextView = (TextView) findViewById(R.id.address);
+
+        mLoadingIndicator = (ProgressBar) findViewById(R.id.loading_indicator);
+
     }
 
     @Override
@@ -48,6 +53,12 @@ public class MainActivity extends AppCompatActivity {
     public class GetTask extends AsyncTask<URL, Void, String> {
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mLoadingIndicator.setVisibility(View.VISIBLE);
+        }
+
+        @Override
         protected String doInBackground(URL... urls) {
             URL url = urls[0];
             String getResults = null;
@@ -61,9 +72,11 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String getResults) {
+            mLoadingIndicator.setVisibility(View.INVISIBLE);
             if (getResults != null && !getResults.equals("")) {
                 try {
                     JSONObject jsonObject = new JSONObject(getResults);
+                    mResultsTextView.setText("");
                     mResultsTextView.append("Address: ");
                     mResultsTextView.append(jsonObject.getString("accountAddress"));
                     mResultsTextView.append("\n");

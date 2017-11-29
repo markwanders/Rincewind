@@ -19,7 +19,9 @@ import java.net.URL;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView mResultsTextView;
+    private TextView mAddressTextView;
+
+    private TextView mBalanceTextView;
 
     private ProgressBar mLoadingIndicator;
 
@@ -28,7 +30,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mResultsTextView = (TextView) findViewById(R.id.address);
+        mAddressTextView = (TextView) findViewById(R.id.addressValue);
+
+        mBalanceTextView = (TextView) findViewById(R.id.balanceValue);
 
         mLoadingIndicator = (ProgressBar) findViewById(R.id.loading_indicator);
 
@@ -76,13 +80,13 @@ public class MainActivity extends AppCompatActivity {
             if (getResults != null && !getResults.equals("")) {
                 try {
                     JSONObject jsonObject = new JSONObject(getResults);
-                    mResultsTextView.setText("");
-                    mResultsTextView.append("Address: ");
-                    mResultsTextView.append(jsonObject.getString("accountAddress"));
-                    mResultsTextView.append("\n");
-                    mResultsTextView.append("Balance: ");
-                    mResultsTextView.append(String.valueOf(jsonObject.getLong("accountBalance")));
-                    mResultsTextView.append(" wei");
+                    mAddressTextView.setText("");
+                    mAddressTextView.append(jsonObject.getString("accountAddress"));
+
+                    mBalanceTextView.setText("");
+                    mBalanceTextView.append(jsonObject.getString("accountBalance"));
+                    mBalanceTextView.append(" " + getString(R.string.wei));
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

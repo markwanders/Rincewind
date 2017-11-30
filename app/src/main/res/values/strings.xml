@@ -3,5 +3,6 @@
     <string name="get">Get</string>
     <string name="address">Address</string>
     <string name="balance">Balance</string>
-    <string name="wei">wei</string>
+    <string name="ether">ether</string>
+    <string name="euro">€</string>
 </resources>

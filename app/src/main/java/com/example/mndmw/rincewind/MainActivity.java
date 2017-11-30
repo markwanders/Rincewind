@@ -84,8 +84,10 @@ public class MainActivity extends AppCompatActivity {
                     mAddressTextView.append(jsonObject.getString("accountAddress"));
 
                     mBalanceTextView.setText("");
-                    mBalanceTextView.append(jsonObject.getString("accountBalance"));
-                    mBalanceTextView.append(" " + getString(R.string.wei));
+                    mBalanceTextView.append(jsonObject.getString("accountBalanceInEther"));
+                    mBalanceTextView.append(" " + getString(R.string.ether));
+                    mBalanceTextView.append(" = ");
+                    mBalanceTextView.append(getString(R.string.euro) + " " + jsonObject.getString("accountBalanceInEuros"));
 
                 } catch (JSONException e) {
                     e.printStackTrace();

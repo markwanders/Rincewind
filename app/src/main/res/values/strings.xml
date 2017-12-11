@@ -5,4 +5,7 @@
     <string name="balance">Balance</string>
     <string name="ether">ether</string>
     <string name="euro">€</string>
+    <string name="ethereum">Ethereum</string>
+    <string name="bunq">Bunq</string>
+    <string name="account">Account</string>
 </resources>

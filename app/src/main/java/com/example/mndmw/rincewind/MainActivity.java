@@ -23,6 +23,10 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView mBalanceTextView;
 
+    private TextView mAccountTextView;
+
+    private TextView mBunqBalanceTextView;
+
     private ProgressBar mLoadingIndicator;
 
     @Override
@@ -33,6 +37,10 @@ public class MainActivity extends AppCompatActivity {
         mAddressTextView = (TextView) findViewById(R.id.addressValue);
 
         mBalanceTextView = (TextView) findViewById(R.id.balanceValue);
+
+        mAccountTextView = (TextView) findViewById(R.id.accountValue);
+
+        mBunqBalanceTextView = (TextView) findViewById(R.id.bunqBalanceValue);
 
         mLoadingIndicator = (ProgressBar) findViewById(R.id.loading_indicator);
 
@@ -89,6 +97,12 @@ public class MainActivity extends AppCompatActivity {
                     mBalanceTextView.append(" = ");
                     mBalanceTextView.append(getString(R.string.euro) + " " + jsonObject.getString("accountBalanceInEuros"));
 
+                    JSONObject bunqResponse = jsonObject.getJSONObject("bunqResponse");
+                    mAccountTextView.setText("");
+                    mAccountTextView.append(bunqResponse.getString("name") + "\n" + bunqResponse.getString("iban"));
+
+                    mBunqBalanceTextView.setText("");
+                    mBunqBalanceTextView.append(getString(R.string.euro) + " " + bunqResponse.get("balance"));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

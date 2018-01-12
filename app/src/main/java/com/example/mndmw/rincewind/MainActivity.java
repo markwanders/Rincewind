@@ -1,46 +1,50 @@
 package com.example.mndmw.rincewind;
 
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
+import com.example.mndmw.rincewind.domain.Account;
 import com.example.mndmw.rincewind.utilities.NetworkUtils;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView mAddressTextView;
-
-    private TextView mBalanceTextView;
-
-    private TextView mAccountTextView;
-
-    private TextView mBunqBalanceTextView;
-
     private ProgressBar mLoadingIndicator;
+
+    private RecyclerView mRecyclerView;
+
+    private AccountAdapter mAccountAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mAddressTextView = (TextView) findViewById(R.id.addressValue);
+        mRecyclerView = (RecyclerView) findViewById(R.id.rv_accounts);
 
-        mBalanceTextView = (TextView) findViewById(R.id.balanceValue);
+        LinearLayoutManager linearLayoutManager
+                = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
 
-        mAccountTextView = (TextView) findViewById(R.id.accountValue);
+        mRecyclerView.setLayoutManager(linearLayoutManager);
 
-        mBunqBalanceTextView = (TextView) findViewById(R.id.bunqBalanceValue);
+        mRecyclerView.setHasFixedSize(true);
+
+        mAccountAdapter = new AccountAdapter(getApplicationContext());
+
+        mRecyclerView.setAdapter(mAccountAdapter);
 
         mLoadingIndicator = (ProgressBar) findViewById(R.id.loading_indicator);
 
@@ -56,13 +60,13 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         int selectedMenuItem = menuItem.getItemId();
         if(selectedMenuItem == R.id.action_get) {
-            new GetTask().execute(NetworkUtils.buildUrl());
+            new GetTask().execute(NetworkUtils.buildUrl("accounts"));
             return true;
         }
         return super.onOptionsItemSelected(menuItem);
     }
 
-    public class GetTask extends AsyncTask<URL, Void, String> {
+    public class GetTask extends AsyncTask<URL, Void, List<Account>> {
 
         @Override
         protected void onPreExecute() {
@@ -71,42 +75,27 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected String doInBackground(URL... urls) {
+        protected List<Account> doInBackground(URL... urls) {
             URL url = urls[0];
-            String getResults = null;
+            String resultString = null;
+            List<Account> accounts = new ArrayList<>();
             try {
-                getResults = NetworkUtils.getResponseFromHttpUrl(url);
+                resultString = NetworkUtils.getResponseFromHttpUrl(url);
+                Gson gson = new Gson();
+                List<Account> accountsResult = gson.fromJson(resultString,  new TypeToken<List<Account>>(){}.getType());
+                if (accountsResult != null) {
+                    accounts.addAll(accountsResult);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return getResults;
+            return accounts;
         }
 
         @Override
-        protected void onPostExecute(String getResults) {
+        protected void onPostExecute(List<Account> accounts) {
             mLoadingIndicator.setVisibility(View.INVISIBLE);
-            if (getResults != null && !getResults.equals("")) {
-                try {
-                    JSONObject jsonObject = new JSONObject(getResults);
-                    mAddressTextView.setText("");
-                    mAddressTextView.append(jsonObject.getString("accountAddress"));
-
-                    mBalanceTextView.setText("");
-                    mBalanceTextView.append(jsonObject.getString("accountBalanceInEther"));
-                    mBalanceTextView.append(" " + getString(R.string.ether));
-                    mBalanceTextView.append(" = ");
-                    mBalanceTextView.append(getString(R.string.euro) + " " + jsonObject.getString("accountBalanceInEuros"));
-
-                    JSONObject bunqResponse = jsonObject.getJSONObject("bunqResponse");
-                    mAccountTextView.setText("");
-                    mAccountTextView.append(bunqResponse.getString("name") + "\n" + bunqResponse.getString("iban"));
-
-                    mBunqBalanceTextView.setText("");
-                    mBunqBalanceTextView.append(getString(R.string.euro) + " " + bunqResponse.get("balance"));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
+            mAccountAdapter.setAccountData(accounts);
         }
     }
 }

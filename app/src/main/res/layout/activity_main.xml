@@ -1,114 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
-    android:paddingTop="16dp"
+    android:layout_width="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.example.mndmw.rincewind.MainActivity">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/ethereum"
-        android:textSize="16sp"/>
-
-    <LinearLayout
+    <android.support.v7.widget.RecyclerView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/address"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:textSize="22sp"
-            android:text="@string/address"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:id="@+id/addressValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:textSize="20sp"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/balance"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:textSize="22sp"
-            android:text="@string/balance"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:id="@+id/balanceValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:textSize="20sp" />
-
-        <TextView
-            android:id="@+id/euroBalanceValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:textSize="20sp" />
-    </LinearLayout>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/bunq"
-        android:textSize="16sp"/>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/account"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:textSize="22sp"
-            android:text="@string/account"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:id="@+id/accountValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:textSize="20sp"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/bunqBalance"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:textSize="22sp"
-            android:text="@string/balance"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:id="@+id/bunqBalanceValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:textSize="20sp" />
-    </LinearLayout>
+        android:layout_height="match_parent"
+        android:id="@+id/rv_accounts">
+    </android.support.v7.widget.RecyclerView>
 
     <ProgressBar
         android:id="@+id/loading_indicator"
@@ -116,4 +16,4 @@
         android:layout_width="42dp"
         android:layout_gravity="center"
         android:visibility="invisible" />
-</LinearLayout>
+</FrameLayout>

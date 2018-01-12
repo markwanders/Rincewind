@@ -15,15 +15,16 @@ import java.util.Scanner;
 
 public class NetworkUtils {
     final static String LAVAEOLUS_BASE_URL =
-            "https://lavaeolus.herokuapp.com/api";
+            "http://lavaeolus.herokuapp.com/api/";
 
     /**
      * Builds the URL used to query Lavaeolus.
      *
      * @return The URL to use to query Lavaeolus.
      */
-    public static URL buildUrl() {
+    public static URL buildUrl(String endpoint) {
         Uri builtUri = Uri.parse(LAVAEOLUS_BASE_URL).buildUpon()
+                .appendPath(endpoint)
                 .build();
 
         URL url = null;

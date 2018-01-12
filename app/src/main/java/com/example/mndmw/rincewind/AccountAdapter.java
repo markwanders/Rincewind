@@ -67,6 +67,8 @@ public class AccountAdapter extends RecyclerView.Adapter<AccountAdapter.AccountA
 
         void bind(Account account) {
             mAccountTypeView.setText(account.getType());
+            mAccountIdentifierContainer.removeAllViews();
+            mAccountBalanceContainer.removeAllViews();
 
             for(Account.Identifier identifier : account.getIdentifiers()) {
                 View view = inflater.inflate(R.layout.account_identifier, null);

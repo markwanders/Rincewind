@@ -20,11 +20,19 @@ import java.util.List;
 public class AccountAdapter extends RecyclerView.Adapter<AccountAdapter.AccountAdapterViewHolder> {
     private List<Account> mAccountData = new ArrayList<>();
 
-    private LayoutInflater inflater;
+    private LayoutInflater mLayoutInflater;
 
-    public AccountAdapter(Context context) {
-        this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    final private AccountClickListener mAccountClickListener;
+
+    public interface AccountClickListener {
+        void onAccountClick(String type);
     }
+
+    AccountAdapter(Context context, AccountClickListener accountClickListener) {
+        mLayoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        mAccountClickListener = accountClickListener;
+    }
+
     @Override
     public AccountAdapterViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         Context context = parent.getContext();
@@ -51,8 +59,16 @@ public class AccountAdapter extends RecyclerView.Adapter<AccountAdapter.AccountA
         mAccountData = accountData;
         notifyDataSetChanged();
     }
+    void setAccountData(Account account) {
+        for(int i = 0; i < mAccountData.size(); i++) {
+            if(mAccountData.get(i).getType().equals(account.getType())) {
+                mAccountData.set(i, account);
+            }
+        }
+        notifyDataSetChanged();
+    }
 
-    class AccountAdapterViewHolder extends RecyclerView.ViewHolder {
+    class AccountAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         final TextView mAccountTypeView;
         final LinearLayout mAccountIdentifierContainer;
         final LinearLayout mAccountBalanceContainer;
@@ -63,6 +79,7 @@ public class AccountAdapter extends RecyclerView.Adapter<AccountAdapter.AccountA
             mAccountTypeView = itemView.findViewById(R.id.account_type);
             mAccountIdentifierContainer = itemView.findViewById(R.id.account_identifier_container);
             mAccountBalanceContainer = itemView.findViewById(R.id.account_balance_container);
+            itemView.setOnClickListener(this);
         }
 
         void bind(Account account) {
@@ -71,7 +88,7 @@ public class AccountAdapter extends RecyclerView.Adapter<AccountAdapter.AccountA
             mAccountBalanceContainer.removeAllViews();
 
             for(Account.Identifier identifier : account.getIdentifiers()) {
-                View view = inflater.inflate(R.layout.account_identifier, null);
+                View view = mLayoutInflater.inflate(R.layout.account_identifier, null);
 
                 TextView mIdentifierNameView = view.findViewById(R.id.account_identifier_name);
                 mIdentifierNameView.setText(identifier.getName());
@@ -83,7 +100,7 @@ public class AccountAdapter extends RecyclerView.Adapter<AccountAdapter.AccountA
             }
 
             for(Account.Balance balance : account.getBalances()) {
-                View view = inflater.inflate(R.layout.account_balance, null);
+                View view = mLayoutInflater.inflate(R.layout.account_balance, null);
 
                 TextView mIdentifierNameView = view.findViewById(R.id.balance_value);
                 mIdentifierNameView.setText(balance.getAmount().toString());
@@ -93,6 +110,13 @@ public class AccountAdapter extends RecyclerView.Adapter<AccountAdapter.AccountA
 
                 mAccountBalanceContainer.addView(view);
             }
+        }
+
+        @Override
+        public void onClick(View v) {
+            Account currentAccount = mAccountData.get(getAdapterPosition());
+            mAccountClickListener.onAccountClick(currentAccount.getType());
+
         }
     }
 }

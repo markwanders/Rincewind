@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.example.mndmw.rincewind.domain.Account;
 import com.example.mndmw.rincewind.utilities.NetworkUtils;
@@ -20,13 +21,17 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AccountAdapter.AccountClickListener {
 
     private ProgressBar mLoadingIndicator;
 
     private RecyclerView mRecyclerView;
 
     private AccountAdapter mAccountAdapter;
+
+    private final static String ACCOUNTS = "accounts";
+
+    private Toast mToast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
         mRecyclerView.setHasFixedSize(true);
 
-        mAccountAdapter = new AccountAdapter(getApplicationContext());
+        mAccountAdapter = new AccountAdapter(getApplicationContext(), this);
 
         mRecyclerView.setAdapter(mAccountAdapter);
 
@@ -60,14 +65,24 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         int selectedMenuItem = menuItem.getItemId();
         if(selectedMenuItem == R.id.action_get) {
-            new GetTask().execute(NetworkUtils.buildUrl("accounts"));
+            new GetAccountsTask().execute();
             return true;
         }
         return super.onOptionsItemSelected(menuItem);
     }
 
-    public class GetTask extends AsyncTask<URL, Void, List<Account>> {
+    @Override
+    public void onAccountClick(String type) {
+        if(mToast != null) {
+            mToast.cancel();
+        }
+        String message = "Refreshing " + type + " data";
+        mToast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
+        mToast.show();
+        new GetAccountTask().execute(type);
+    }
 
+    public class GetAccountsTask extends AsyncTask<Void, Void, List<Account>> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -75,8 +90,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected List<Account> doInBackground(URL... urls) {
-            URL url = urls[0];
+        protected List<Account> doInBackground(Void... voids) {
+            URL url = NetworkUtils.buildUrl(ACCOUNTS);
             String resultString = null;
             List<Account> accounts = new ArrayList<>();
             try {
@@ -96,6 +111,36 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(List<Account> accounts) {
             mLoadingIndicator.setVisibility(View.INVISIBLE);
             mAccountAdapter.setAccountData(accounts);
+        }
+    }
+
+    public class GetAccountTask extends AsyncTask<String, Void, Account> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mLoadingIndicator.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected Account doInBackground(String... endpoints) {
+            URL url = NetworkUtils.buildUrl(endpoints[0].toLowerCase());
+            String resultString = null;
+            Account account = null;
+            try {
+                resultString = NetworkUtils.getResponseFromHttpUrl(url);
+                Gson gson = new Gson();
+                account = gson.fromJson(resultString, Account.class);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return account;
+        }
+
+        @Override
+        protected void onPostExecute(Account account) {
+            mLoadingIndicator.setVisibility(View.INVISIBLE);
+            mAccountAdapter.setAccountData(account);
         }
     }
 }

@@ -22,10 +22,12 @@ public class NetworkUtils {
      *
      * @return The URL to use to query Lavaeolus.
      */
-    public static URL buildUrl(String endpoint) {
-        Uri builtUri = Uri.parse(LAVAEOLUS_BASE_URL).buildUpon()
-                .appendPath(endpoint)
-                .build();
+    public static URL buildUrl(String... endpoints) {
+        Uri.Builder builder = Uri.parse(LAVAEOLUS_BASE_URL).buildUpon();
+        for(String endpoint : endpoints) {
+            builder.appendPath(endpoint);
+        }
+        Uri builtUri = builder.build();
 
         URL url = null;
         try {

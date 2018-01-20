@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         int selectedMenuItem = menuItem.getItemId();
         if(selectedMenuItem == R.id.action_get) {
-            new GetAccountsTask().execute();
+            new GetAccountsTask().execute(ACCOUNTS);
             return true;
         }
         return super.onOptionsItemSelected(menuItem);
@@ -79,10 +79,10 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
         String message = "Refreshing " + type + " data";
         mToast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
         mToast.show();
-        new GetAccountTask().execute(type);
+        new GetAccountsTask().execute(ACCOUNTS, type);
     }
 
-    public class GetAccountsTask extends AsyncTask<Void, Void, List<Account>> {
+    public class GetAccountsTask extends AsyncTask<String, Void, List<Account>> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
         }
 
         @Override
-        protected List<Account> doInBackground(Void... voids) {
+        protected List<Account> doInBackground(String... endpoints) {
             URL url = NetworkUtils.buildUrl(ACCOUNTS);
             String resultString = null;
             List<Account> accounts = new ArrayList<>();
@@ -111,36 +111,6 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
         protected void onPostExecute(List<Account> accounts) {
             mLoadingIndicator.setVisibility(View.INVISIBLE);
             mAccountAdapter.setAccountData(accounts);
-        }
-    }
-
-    public class GetAccountTask extends AsyncTask<String, Void, Account> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mLoadingIndicator.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        protected Account doInBackground(String... endpoints) {
-            URL url = NetworkUtils.buildUrl(endpoints[0].toLowerCase());
-            String resultString = null;
-            Account account = null;
-            try {
-                resultString = NetworkUtils.getResponseFromHttpUrl(url);
-                Gson gson = new Gson();
-                account = gson.fromJson(resultString, Account.class);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return account;
-        }
-
-        @Override
-        protected void onPostExecute(Account account) {
-            mLoadingIndicator.setVisibility(View.INVISIBLE);
-            mAccountAdapter.setAccountData(account);
         }
     }
 }

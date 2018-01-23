@@ -55,7 +55,7 @@ public class AccountAdapter extends RecyclerView.Adapter<AccountAdapter.AccountA
         return mAccountData.size();
     }
 
-    void setAccountData(List<Account> accountData) {
+    void setAccountsData(List<Account> accountData) {
         mAccountData = accountData;
         notifyDataSetChanged();
     }

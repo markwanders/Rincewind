@@ -1,5 +1,8 @@
 package com.example.mndmw.rincewind;
 
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -9,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mndmw.rincewind.domain.Account;
@@ -21,7 +25,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements AccountAdapter.AccountClickListener {
+public class MainActivity extends AppCompatActivity implements AccountAdapter.AccountClickListener, LoaderManager.LoaderCallbacks<List<Account>> {
 
     private ProgressBar mLoadingIndicator;
 
@@ -29,9 +33,16 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
 
     private AccountAdapter mAccountAdapter;
 
+    private TextView mErrorMessageDisplay;
+
     private final static String ACCOUNTS = "accounts";
 
+    private static final String TYPE = "type";
+
     private Toast mToast;
+
+    private static final int ACCOUNTS_LOADER_ID = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +64,11 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
 
         mLoadingIndicator = (ProgressBar) findViewById(R.id.loading_indicator);
 
+        mErrorMessageDisplay = (TextView) findViewById(R.id.tv_error_message_display);
+
+        LoaderManager.LoaderCallbacks<List<Account>> callback = MainActivity.this;
+
+        getSupportLoaderManager().initLoader(ACCOUNTS_LOADER_ID, null, callback);
     }
 
     @Override
@@ -65,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         int selectedMenuItem = menuItem.getItemId();
         if(selectedMenuItem == R.id.action_get) {
-            new GetAccountsTask().execute(ACCOUNTS);
+            getSupportLoaderManager().restartLoader(ACCOUNTS_LOADER_ID, null, this);
             return true;
         }
         return super.onOptionsItemSelected(menuItem);
@@ -79,38 +95,86 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
         String message = "Refreshing " + type + " data";
         mToast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
         mToast.show();
-        new GetAccountsTask().execute(ACCOUNTS, type);
+
+        Bundle argsBundle = new Bundle();
+        argsBundle.putString(TYPE, type);
+
+        getSupportLoaderManager().restartLoader(ACCOUNTS_LOADER_ID, argsBundle, this);
     }
 
-    public class GetAccountsTask extends AsyncTask<String, Void, List<Account>> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mLoadingIndicator.setVisibility(View.VISIBLE);
-        }
+    @Override
+    public Loader<List<Account>> onCreateLoader(int id, final Bundle args) {
+        return new AsyncTaskLoader<List<Account>>(this) {
+            List<Account> accounts = null;
 
-        @Override
-        protected List<Account> doInBackground(String... endpoints) {
-            URL url = NetworkUtils.buildUrl(ACCOUNTS);
-            String resultString = null;
-            List<Account> accounts = new ArrayList<>();
-            try {
-                resultString = NetworkUtils.getResponseFromHttpUrl(url);
-                Gson gson = new Gson();
-                List<Account> accountsResult = gson.fromJson(resultString,  new TypeToken<List<Account>>(){}.getType());
-                if (accountsResult != null) {
-                    accounts.addAll(accountsResult);
+            @Override
+            protected void onStartLoading() {
+                if (accounts == null) {
+                    mLoadingIndicator.setVisibility(View.VISIBLE);
+                    forceLoad();
+                } else {
+                    deliverResult(accounts);
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
-            return accounts;
-        }
 
-        @Override
-        protected void onPostExecute(List<Account> accounts) {
-            mLoadingIndicator.setVisibility(View.INVISIBLE);
-            mAccountAdapter.setAccountData(accounts);
+            @Override
+            public List<Account> loadInBackground() {
+                URL url;
+                if(args != null && args.containsKey(TYPE)) {
+                    url = NetworkUtils.buildUrl(ACCOUNTS, args.getString(TYPE));
+                } else {
+                    url = NetworkUtils.buildUrl(ACCOUNTS);
+                }
+                String resultString = null;
+                List<Account> accounts = new ArrayList<>();
+                try {
+                    resultString = NetworkUtils.getResponseFromHttpUrl(url);
+                    Gson gson = new Gson();
+                    List<Account> accountsResult = gson.fromJson(resultString,  new TypeToken<List<Account>>(){}.getType());
+                    if (accountsResult != null) {
+                        accounts.addAll(accountsResult);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return accounts;
+            }
+
+            public void deliverResult(List<Account> accountsResult) {
+                this.accounts = accountsResult;
+                super.deliverResult(accountsResult);
+            }
+        };
+    }
+
+    @Override
+    public void onLoadFinished(Loader<List<Account>> loader, List<Account> data) {
+        mLoadingIndicator.setVisibility(View.INVISIBLE);
+        mAccountAdapter.setAccountsData(data);
+        if(null == data) {
+            showErrorMessage();
+        } else {
+            showAccountsView();
         }
     }
+
+    @Override
+    public void onLoaderReset(Loader<List<Account>> loader) {
+
+    }
+
+    private void showAccountsView() {
+        /* First, make sure the error is invisible */
+        mErrorMessageDisplay.setVisibility(View.INVISIBLE);
+        /* Then, make sure the weather data is visible */
+        mRecyclerView.setVisibility(View.VISIBLE);
+    }
+
+    private void showErrorMessage() {
+        /* First, hide the currently visible data */
+        mRecyclerView.setVisibility(View.INVISIBLE);
+        /* Then, show the error */
+        mErrorMessageDisplay.setVisibility(View.VISIBLE);
+    }
+
 }

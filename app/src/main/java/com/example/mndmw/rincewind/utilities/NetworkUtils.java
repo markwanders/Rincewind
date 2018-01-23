@@ -25,7 +25,7 @@ public class NetworkUtils {
     public static URL buildUrl(String... endpoints) {
         Uri.Builder builder = Uri.parse(LAVAEOLUS_BASE_URL).buildUpon();
         for(String endpoint : endpoints) {
-            builder.appendPath(endpoint);
+            builder.appendPath(endpoint.toLowerCase());
         }
         Uri builtUri = builder.build();
 

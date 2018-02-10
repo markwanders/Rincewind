@@ -1,5 +1,7 @@
 package com.example.mndmw.rincewind;
 
+import android.content.Context;
+import android.content.Intent;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -88,17 +90,11 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
 
     @Override
     public void onAccountClick(String type) {
-        if(mToast != null) {
-            mToast.cancel();
-        }
-        String message = "Refreshing " + type + " data";
-        mToast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
-        mToast.show();
-
-        Bundle argsBundle = new Bundle();
-        argsBundle.putString(TYPE, type);
-
-        getSupportLoaderManager().restartLoader(ACCOUNTS_LOADER_ID, argsBundle, this);
+        Context context = this;
+        Class destinationClass = TransactionsActivity.class;
+        Intent intent = new Intent(context, destinationClass);
+        intent.putExtra(Intent.EXTRA_TEXT, type);
+        startActivity(intent);
     }
 
     @Override

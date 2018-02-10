@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
 
     private static final String TYPE = "type";
 
-    private Toast mToast;
+    private static final String ID = "id";
 
     private static final int ACCOUNTS_LOADER_ID = 0;
 
@@ -89,11 +89,14 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
     }
 
     @Override
-    public void onAccountClick(String type) {
+    public void onAccountClick(String type, String id) {
         Context context = this;
         Class destinationClass = TransactionsActivity.class;
         Intent intent = new Intent(context, destinationClass);
-        intent.putExtra(Intent.EXTRA_TEXT, type);
+        Bundle extras = new Bundle();
+        extras.putString(TYPE, type);
+        extras.putString(ID, id);
+        intent.putExtras(extras);
         startActivity(intent);
     }
 

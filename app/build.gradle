@@ -1,5 +1,7 @@
 apply plugin: 'com.android.application'
 
+def LAVAEOLUS_API_KEY = '"' + LavaeolusAPIKey + '"' ?: '"No Lavaeolus API key configured"'
+
 android {
     compileSdkVersion 26
     defaultConfig {
@@ -9,6 +11,9 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        each { type ->
+            type.buildConfigField "String", 'LavaeolusAPIKey', LAVAEOLUS_API_KEY
+        }
     }
     buildTypes {
         release {

@@ -1,9 +1,10 @@
 package com.example.mndmw.rincewind;
 
+import android.content.Context;
+import android.content.Intent;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -39,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
 
     private static final String TYPE = "type";
 
-    private Toast mToast;
+    private static final String ID = "id";
 
     private static final int ACCOUNTS_LOADER_ID = 0;
 
@@ -88,18 +89,15 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
     }
 
     @Override
-    public void onAccountClick(String type) {
-        if(mToast != null) {
-            mToast.cancel();
-        }
-        String message = "Refreshing " + type + " data";
-        mToast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
-        mToast.show();
-
-        Bundle argsBundle = new Bundle();
-        argsBundle.putString(TYPE, type);
-
-        getSupportLoaderManager().restartLoader(ACCOUNTS_LOADER_ID, argsBundle, this);
+    public void onAccountClick(String type, String id) {
+        Context context = this;
+        Class destinationClass = TransactionsActivity.class;
+        Intent intent = new Intent(context, destinationClass);
+        Bundle extras = new Bundle();
+        extras.putString(TYPE, type);
+        extras.putString(ID, id);
+        intent.putExtras(extras);
+        startActivity(intent);
     }
 
     @Override

@@ -2,6 +2,8 @@ package com.example.mndmw.rincewind.utilities;
 
 import android.net.Uri;
 
+import com.example.mndmw.rincewind.BuildConfig;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -14,7 +16,7 @@ import java.util.Scanner;
  */
 
 public class NetworkUtils {
-    final static String LAVAEOLUS_BASE_URL =
+    private final static String LAVAEOLUS_BASE_URL =
             "http://lavaeolus.herokuapp.com/api/";
 
     /**
@@ -27,6 +29,8 @@ public class NetworkUtils {
         for(String endpoint : endpoints) {
             builder.appendPath(endpoint.toLowerCase());
         }
+        String apiKey = BuildConfig.LavaeolusAPIKey;
+        builder.appendQueryParameter("api-key", apiKey);
         Uri builtUri = builder.build();
 
         URL url = null;

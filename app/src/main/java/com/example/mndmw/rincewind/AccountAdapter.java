@@ -25,7 +25,7 @@ public class AccountAdapter extends RecyclerView.Adapter<AccountAdapter.AccountA
     final private AccountClickListener mAccountClickListener;
 
     public interface AccountClickListener {
-        void onAccountClick(String type);
+        void onAccountClick(String type, String id);
     }
 
     AccountAdapter(Context context, AccountClickListener accountClickListener) {
@@ -115,7 +115,7 @@ public class AccountAdapter extends RecyclerView.Adapter<AccountAdapter.AccountA
         @Override
         public void onClick(View v) {
             Account currentAccount = mAccountData.get(getAdapterPosition());
-            mAccountClickListener.onAccountClick(currentAccount.getType());
+            mAccountClickListener.onAccountClick(currentAccount.getType(), currentAccount.getIdentifiers().get(0).getValue());
 
         }
     }

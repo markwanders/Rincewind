@@ -16,8 +16,6 @@ public class Transaction {
 
     private String description;
 
-    private LocalDateTime dateTime;
-
     public String getCounterParty() {
         return counterParty;
     }
@@ -40,14 +38,6 @@ public class Transaction {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public LocalDateTime getDateTime() {
-        return dateTime;
-    }
-
-    public void setDateTime(LocalDateTime dateTime) {
-        this.dateTime = dateTime;
     }
 
     public String getCurrency() {

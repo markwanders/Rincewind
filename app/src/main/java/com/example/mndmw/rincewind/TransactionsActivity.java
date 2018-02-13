@@ -1,5 +1,6 @@
 package com.example.mndmw.rincewind;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
@@ -81,29 +82,7 @@ public class TransactionsActivity extends AppCompatActivity implements LoaderMan
 
     @Override
     public Loader<List<Transaction>> onCreateLoader(int id, final Bundle args) {
-        return new AsyncTaskLoader<List<Transaction>>(this) {
-            List<Transaction> transactions = null;
-
-            @Override
-            protected void onStartLoading() {
-                if (transactions == null) {
-                    mLoadingIndicator.setVisibility(View.VISIBLE);
-                    forceLoad();
-                } else {
-                    deliverResult(transactions);
-                }
-            }
-
-            @Override
-            public List<Transaction> loadInBackground() {
-                return loadTransactions(args);
-            }
-
-            public void deliverResult(List<Transaction> transactionsResult) {
-                this.transactions = transactionsResult;
-                super.deliverResult(transactionsResult);
-            }
-        };
+        return new TransactionsLoader(this, args, mLoadingIndicator);
     }
 
     @Override
@@ -119,28 +98,56 @@ public class TransactionsActivity extends AppCompatActivity implements LoaderMan
 
     @Override
     public void onRefresh() {
-        loadTransactions(getIntent().getExtras());
+        getSupportLoaderManager().restartLoader(TRANSACTIONS_LOADER_ID, null, null);
     }
 
-    private List<Transaction> loadTransactions(Bundle args) {
-        URL url;
-        if(args != null && args.containsKey(ID) && args.containsKey(TYPE)) {
-            url = NetworkUtils.buildUrl(ACCOUNTS, args.getString(TYPE), TRANSACTIONS, args.getString(ID));
-        } else {
-            url = NetworkUtils.buildUrl(ACCOUNTS, TRANSACTIONS);
+    private static class TransactionsLoader extends AsyncTaskLoader<List<Transaction>> {
+        List<Transaction> transactions = null;
+        private Bundle args;
+        private ProgressBar mLoadingIndicator;
+
+        public TransactionsLoader(Context context, Bundle args, ProgressBar mLoadingIndicator) {
+            super(context);
+            this.mLoadingIndicator = mLoadingIndicator;
+            this.args = args;
         }
-        String resultString = null;
-        List<Transaction> accounts = new ArrayList<>();
-        try {
-            resultString = NetworkUtils.getResponseFromHttpUrl(url);
-            Gson gson = new Gson();
-            List<Transaction> transactionsResult = gson.fromJson(resultString,  new TypeToken<List<Transaction>>(){}.getType());
-            if (transactionsResult != null) {
-                accounts.addAll(transactionsResult);
+
+        @Override
+        protected void onStartLoading() {
+            if (transactions == null) {
+                mLoadingIndicator.setVisibility(View.VISIBLE);
+                forceLoad();
+            } else {
+                deliverResult(transactions);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-        return accounts;
+
+        @Override
+        public List<Transaction> loadInBackground() {
+            URL url;
+            if(args != null && args.containsKey(ID) && args.containsKey(TYPE)) {
+                url = NetworkUtils.buildUrl(ACCOUNTS, args.getString(TYPE), TRANSACTIONS, args.getString(ID));
+            } else {
+                url = NetworkUtils.buildUrl(ACCOUNTS, TRANSACTIONS);
+            }
+            String resultString = null;
+            List<Transaction> accounts = new ArrayList<>();
+            try {
+                resultString = NetworkUtils.getResponseFromHttpUrl(url);
+                Gson gson = new Gson();
+                List<Transaction> transactionsResult = gson.fromJson(resultString,  new TypeToken<List<Transaction>>(){}.getType());
+                if (transactionsResult != null) {
+                    accounts.addAll(transactionsResult);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return accounts;
+        }
+
+        public void deliverResult(List<Transaction> transactionsResult) {
+            this.transactions = transactionsResult;
+            super.deliverResult(transactionsResult);
+        }
     }
 }

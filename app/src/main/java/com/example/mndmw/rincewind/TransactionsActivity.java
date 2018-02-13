@@ -1,9 +1,7 @@
 package com.example.mndmw.rincewind;
 
-import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -14,15 +12,10 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.example.mndmw.rincewind.domain.Account;
 import com.example.mndmw.rincewind.domain.Transaction;
-import com.example.mndmw.rincewind.utilities.NetworkUtils;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 
 public class TransactionsActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Transaction>>, SwipeRefreshLayout.OnRefreshListener {
@@ -31,14 +24,8 @@ public class TransactionsActivity extends AppCompatActivity implements LoaderMan
     private ProgressBar mLoadingIndicator;
     private RecyclerView mRecyclerView;
     private TransactionAdapter mTransactionAdapter;
-
-    private String mType;
-    private String mID;
-
-    private static final String TYPE = "type";
-    private static final String ID = "id";
-    private final static String ACCOUNTS = "accounts";
-    private final static String TRANSACTIONS = "transactions";
+    private Loader<List<Transaction>> mTransactionLoader;
+    private TextView mLastUpdatedTextView;
 
     private static final int TRANSACTIONS_LOADER_ID = 1;
 
@@ -61,23 +48,16 @@ public class TransactionsActivity extends AppCompatActivity implements LoaderMan
 
         mLoadingIndicator = findViewById(R.id.loading_indicator);
 
-        final Intent intentThatStartedThisActivity = getIntent();
+        mLastUpdatedTextView = findViewById(R.id.transaction_last_updated);
 
-        if (intentThatStartedThisActivity != null) {
-            if (intentThatStartedThisActivity.hasExtra(TYPE)) {
-                mType = intentThatStartedThisActivity.getStringExtra(TYPE);
-            }
-            if (intentThatStartedThisActivity.hasExtra(ID)) {
-                mID = intentThatStartedThisActivity.getStringExtra(ID);
-            }
-        }
+        final Intent intentThatStartedThisActivity = getIntent();
 
         mSwipeRefreshLayout = findViewById(R.id.swipe_container);
         mSwipeRefreshLayout.setOnRefreshListener(this);
 
         LoaderManager.LoaderCallbacks<List<Transaction>> callback = TransactionsActivity.this;
 
-        getSupportLoaderManager().initLoader(TRANSACTIONS_LOADER_ID, intentThatStartedThisActivity.getExtras(), callback);
+        mTransactionLoader = getSupportLoaderManager().initLoader(TRANSACTIONS_LOADER_ID, intentThatStartedThisActivity.getExtras(), callback);
     }
 
     @Override
@@ -89,6 +69,9 @@ public class TransactionsActivity extends AppCompatActivity implements LoaderMan
     public void onLoadFinished(Loader<List<Transaction>> loader, List<Transaction> data) {
         mLoadingIndicator.setVisibility(View.INVISIBLE);
         mTransactionAdapter.setTransactionData(data);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/M/yyyy, hh:mm:ss" );
+        mLastUpdatedTextView.setText(getString(R.string.last_updated, simpleDateFormat.format(Calendar.getInstance().getTime())));
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     @Override
@@ -98,56 +81,6 @@ public class TransactionsActivity extends AppCompatActivity implements LoaderMan
 
     @Override
     public void onRefresh() {
-        getSupportLoaderManager().restartLoader(TRANSACTIONS_LOADER_ID, null, null);
-    }
-
-    private static class TransactionsLoader extends AsyncTaskLoader<List<Transaction>> {
-        List<Transaction> transactions = null;
-        private Bundle args;
-        private ProgressBar mLoadingIndicator;
-
-        public TransactionsLoader(Context context, Bundle args, ProgressBar mLoadingIndicator) {
-            super(context);
-            this.mLoadingIndicator = mLoadingIndicator;
-            this.args = args;
-        }
-
-        @Override
-        protected void onStartLoading() {
-            if (transactions == null) {
-                mLoadingIndicator.setVisibility(View.VISIBLE);
-                forceLoad();
-            } else {
-                deliverResult(transactions);
-            }
-        }
-
-        @Override
-        public List<Transaction> loadInBackground() {
-            URL url;
-            if(args != null && args.containsKey(ID) && args.containsKey(TYPE)) {
-                url = NetworkUtils.buildUrl(ACCOUNTS, args.getString(TYPE), TRANSACTIONS, args.getString(ID));
-            } else {
-                url = NetworkUtils.buildUrl(ACCOUNTS, TRANSACTIONS);
-            }
-            String resultString = null;
-            List<Transaction> accounts = new ArrayList<>();
-            try {
-                resultString = NetworkUtils.getResponseFromHttpUrl(url);
-                Gson gson = new Gson();
-                List<Transaction> transactionsResult = gson.fromJson(resultString,  new TypeToken<List<Transaction>>(){}.getType());
-                if (transactionsResult != null) {
-                    accounts.addAll(transactionsResult);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return accounts;
-        }
-
-        public void deliverResult(List<Transaction> transactionsResult) {
-            this.transactions = transactionsResult;
-            super.deliverResult(transactionsResult);
-        }
+        mTransactionLoader.forceLoad();
     }
 }

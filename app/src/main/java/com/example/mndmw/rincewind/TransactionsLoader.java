@@ -49,7 +49,7 @@ public class TransactionsLoader extends android.support.v4.content.AsyncTaskLoad
     public List<Transaction> loadInBackground() {
         URL url;
         if(args != null && args.containsKey(ID) && args.containsKey(TYPE)) {
-            url = NetworkUtils.buildUrl(ACCOUNTS, args.getString(TYPE), TRANSACTIONS, args.getString(ID));
+            url = NetworkUtils.buildUrl(ACCOUNTS, args.getString(TYPE), args.getString(ID), TRANSACTIONS);
         } else {
             url = NetworkUtils.buildUrl(ACCOUNTS, TRANSACTIONS);
         }

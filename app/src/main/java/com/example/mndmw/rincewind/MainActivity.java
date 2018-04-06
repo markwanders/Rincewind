@@ -14,7 +14,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.mndmw.rincewind.domain.Account;
 import com.example.mndmw.rincewind.utilities.NetworkUtils;
@@ -50,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.rv_accounts);
+        mRecyclerView = findViewById(R.id.rv_accounts);
 
         LinearLayoutManager linearLayoutManager
                 = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
@@ -63,9 +62,9 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
 
         mRecyclerView.setAdapter(mAccountAdapter);
 
-        mLoadingIndicator = (ProgressBar) findViewById(R.id.loading_indicator);
+        mLoadingIndicator = findViewById(R.id.loading_indicator);
 
-        mErrorMessageDisplay = (TextView) findViewById(R.id.tv_error_message_display);
+        mErrorMessageDisplay = findViewById(R.id.tv_error_message_display);
 
         LoaderManager.LoaderCallbacks<List<Account>> callback = MainActivity.this;
 

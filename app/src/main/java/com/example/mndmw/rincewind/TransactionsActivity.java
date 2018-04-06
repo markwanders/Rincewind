@@ -69,8 +69,7 @@ public class TransactionsActivity extends AppCompatActivity implements LoaderMan
     public void onLoadFinished(Loader<List<Transaction>> loader, List<Transaction> data) {
         mLoadingIndicator.setVisibility(View.INVISIBLE);
         mTransactionAdapter.setTransactionData(data);
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/M/yyyy, hh:mm:ss" );
-        mLastUpdatedTextView.setText(getString(R.string.last_updated, simpleDateFormat.format(Calendar.getInstance().getTime())));
+        mLastUpdatedTextView.setText(getString(R.string.last_updated, SimpleDateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime())));
         mSwipeRefreshLayout.setRefreshing(false);
     }
 

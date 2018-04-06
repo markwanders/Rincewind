@@ -17,7 +17,7 @@ import java.util.Scanner;
 
 public class NetworkUtils {
     private final static String LAVAEOLUS_BASE_URL =
-            "http://lavaeolus.herokuapp.com/api/";
+            "https://lavaeolus.herokuapp.com/api/";
 
     /**
      * Builds the URL used to query Lavaeolus.
@@ -29,8 +29,6 @@ public class NetworkUtils {
         for(String endpoint : endpoints) {
             builder.appendPath(endpoint.toLowerCase());
         }
-        String apiKey = BuildConfig.LavaeolusAPIKey;
-        builder.appendQueryParameter("api-key", apiKey);
         Uri builtUri = builder.build();
 
         URL url = null;

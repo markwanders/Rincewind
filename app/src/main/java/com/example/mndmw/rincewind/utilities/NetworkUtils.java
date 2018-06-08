@@ -50,6 +50,7 @@ public class NetworkUtils {
      */
     public static String getResponseFromHttpUrl(URL url) throws IOException {
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        urlConnection.setRequestProperty("x-auth-token", "eyJhbGciOiJIUzUxMiJ9.eyJleHAiOjE1MjM4NzE3NzEsInN1YiI6IntcInBhc3N3b3JkXCI6bnVsbCxcInVzZXJuYW1lXCI6XCJhZG1pblwiLFwiYXV0aG9yaXRpZXNcIjpbe1wiYXV0aG9yaXR5XCI6XCJBRE1JTlwifV0sXCJhY2NvdW50Tm9uRXhwaXJlZFwiOnRydWUsXCJhY2NvdW50Tm9uTG9ja2VkXCI6dHJ1ZSxcImNyZWRlbnRpYWxzTm9uRXhwaXJlZFwiOnRydWUsXCJlbmFibGVkXCI6dHJ1ZSxcInVzZXJcIjp7XCJpZFwiOjEwLFwidXNlcm5hbWVcIjpcImFkbWluXCIsXCJyb2xlXCI6XCJBRE1JTlwifSxcInJvbGVcIjpcIkFETUlOXCIsXCJpZFwiOjEwfSJ9.sZWoaVlyVwisMZuJ03iROJQFskOcj8olT1raokcwOHaI3miW4TtKNfsIPqGxqijkPGXVHBoKPlh8Z1oLtD2kHg");
         try {
             InputStream in = urlConnection.getInputStream();
 

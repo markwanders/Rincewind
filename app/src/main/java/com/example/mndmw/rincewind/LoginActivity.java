@@ -66,14 +66,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      */
     private static final int REQUEST_READ_CONTACTS = 0;
 
-    /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
-    };
-
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
@@ -203,7 +195,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
 
-            LoginRequest stringRequest = new LoginRequest(email, password,
+            LoginRequest loginRequest = new LoginRequest(email, password,
                     new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
@@ -228,7 +220,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             });
 
             // Add the request to the RequestQueue.
-            queue.add(stringRequest);
+            queue.add(loginRequest);
         }
     }
 
@@ -332,6 +324,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      */
     private class LoginRequest extends Request<String> {
 
+        private static final String URL = "https://lavaeolus.herokuapp.com/login";
+
         /** Lock to guard mListener as it is cleared on cancel() and read on delivery. */
         private final Object mLock = new Object();
 
@@ -341,8 +335,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         // @GuardedBy("mLock")
         private Response.Listener<String> mListener;
 
-        public LoginRequest(String username, String password, Response.Listener<String> stringListener, Response.ErrorListener listener) {
-            super(Request.Method.POST, "https://lavaeolus.herokuapp.com/login", listener);
+        LoginRequest(String username, String password, Response.Listener<String> stringListener, Response.ErrorListener listener) {
+            super(Request.Method.POST, URL, listener);
             this.mListener = stringListener;
             this.username = username;
             this.password = password;

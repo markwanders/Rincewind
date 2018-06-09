@@ -1,11 +1,10 @@
 package com.example.mndmw.rincewind;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.content.Loader;
-import android.view.View;
-import android.widget.ProgressBar;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
@@ -15,16 +14,11 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.mndmw.rincewind.domain.Account;
 import com.example.mndmw.rincewind.domain.Transaction;
-import com.example.mndmw.rincewind.utilities.NetworkUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,24 +30,25 @@ import java.util.Map;
 public class TransactionsLoader extends Loader<List<Transaction>> {
     private List<Transaction> transactions = null;
     private Bundle args;
-    private ProgressBar mLoadingIndicator;
 
     private final static String BASE = "https://lavaeolus.herokuapp.com/api/";
     private final static String ACCOUNTS = "accounts/";
     private final static String TRANSACTIONS = "transactions/";
     private static final String ID = "id";
     private static final String TYPE = "type";
+    private static final String TOKEN_KEY = "token";
 
-    public TransactionsLoader(Context context, Bundle args, ProgressBar mLoadingIndicator) {
+    private SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+
+
+    public TransactionsLoader(Context context, Bundle args) {
         super(context);
-        this.mLoadingIndicator = mLoadingIndicator;
         this.args = args;
     }
 
     @Override
     protected void onStartLoading() {
         if (transactions == null) {
-            mLoadingIndicator.setVisibility(View.VISIBLE);
             forceLoad();
         } else {
             deliverResult(transactions);
@@ -78,13 +73,18 @@ public class TransactionsLoader extends Loader<List<Transaction>> {
             @Override
             public void onResponse(List<Transaction> response) {
                 deliverResult(response);
-                mLoadingIndicator.setVisibility(View.INVISIBLE);
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-//                showErrorMessage();
-                mLoadingIndicator.setVisibility(View.INVISIBLE);
+                NetworkResponse networkResponse = error.networkResponse;
+                if(networkResponse.statusCode == 403 || networkResponse.statusCode == 401) {
+                    //Token is invalid/expired, delete it so we can log in again
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.remove(TOKEN_KEY);
+                    editor.apply();
+                }
+                deliverResult(null);
             }
         });
 
@@ -97,11 +97,12 @@ public class TransactionsLoader extends Loader<List<Transaction>> {
     }
 
     private class TransactionsRequest extends JsonRequest<List<Transaction>> {
+        private static final String TOKEN_HEADER = "X-Auth-Token";
 
         @Override
         public Map<String, String> getHeaders() throws AuthFailureError {
             Map<String, String> headers = new HashMap<>(super.getHeaders());
-            headers.put("X-Auth-Token", PreferenceManager.getDefaultSharedPreferences(getContext()).getString("token", ""));
+            headers.put(TOKEN_HEADER, sharedPreferences.getString(TOKEN_KEY, ""));
             return headers;
         }
 
@@ -121,4 +122,5 @@ public class TransactionsLoader extends Loader<List<Transaction>> {
             }
         }
     }
+
 }

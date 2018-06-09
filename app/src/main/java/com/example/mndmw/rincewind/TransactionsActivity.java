@@ -62,15 +62,21 @@ public class TransactionsActivity extends AppCompatActivity implements LoaderMan
 
     @Override
     public Loader<List<Transaction>> onCreateLoader(int id, final Bundle args) {
-        return new TransactionsLoader(this, args, mLoadingIndicator);
+        mLoadingIndicator.setVisibility(View.VISIBLE);
+        return new TransactionsLoader(this, args);
     }
 
     @Override
     public void onLoadFinished(Loader<List<Transaction>> loader, List<Transaction> data) {
         mLoadingIndicator.setVisibility(View.INVISIBLE);
+        mSwipeRefreshLayout.setRefreshing(false);
+
+        if(data == null) {
+            goToLogin();
+        }
+
         mTransactionAdapter.setTransactionData(data);
         mLastUpdatedTextView.setText(getString(R.string.last_updated, SimpleDateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime())));
-        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     @Override
@@ -81,5 +87,12 @@ public class TransactionsActivity extends AppCompatActivity implements LoaderMan
     @Override
     public void onRefresh() {
         mTransactionLoader.forceLoad();
+    }
+
+    private void goToLogin() {
+        Class destinationClass = LoginActivity.class;
+        Intent intent = new Intent(getApplicationContext(), destinationClass);
+        startActivity(intent);
+        finish();
     }
 }

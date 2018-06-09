@@ -2,6 +2,7 @@ package com.example.mndmw.rincewind;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.LoaderManager;
@@ -15,22 +16,9 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.NetworkResponse;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.HttpHeaderParser;
-import com.android.volley.toolbox.JsonRequest;
-import com.android.volley.toolbox.Volley;
 import com.example.mndmw.rincewind.domain.Account;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements AccountAdapter.AccountClickListener, LoaderManager.LoaderCallbacks<List<Account>> {
 
@@ -46,7 +34,11 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
 
     private static final String ID = "id";
 
+    private static final String TOKEN_KEY = "token";
+
     private static final int ACCOUNTS_LOADER_ID = 0;
+
+    private static SharedPreferences sharedPreferences;
 
 
     @Override
@@ -73,6 +65,8 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
 
         LoaderManager.LoaderCallbacks<List<Account>> callback = MainActivity.this;
 
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
         getSupportLoaderManager().initLoader(ACCOUNTS_LOADER_ID, null, callback);
     }
 
@@ -87,6 +81,13 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
         int selectedMenuItem = menuItem.getItemId();
         if(selectedMenuItem == R.id.action_get) {
             getSupportLoaderManager().restartLoader(ACCOUNTS_LOADER_ID, null, this);
+            return true;
+        }
+        if(selectedMenuItem == R.id.action_logout) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.remove(TOKEN_KEY);
+            editor.apply();
+            goToLogin();
             return true;
         }
         return super.onOptionsItemSelected(menuItem);
@@ -106,51 +107,9 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
 
     @Override
     public Loader<List<Account>> onCreateLoader(int id, final Bundle args) {
+        mLoadingIndicator.setVisibility(View.VISIBLE);
 
-
-        return new Loader<List<Account>>(this) {
-            List<Account> accounts = null;
-
-            @Override
-            protected void onStartLoading() {
-                if (accounts == null) {
-                    mLoadingIndicator.setVisibility(View.VISIBLE);
-                    forceLoad();
-                } else {
-                    deliverResult(accounts);
-                }
-            }
-
-            @Override
-            public void deliverResult(List<Account> accountsResult) {
-                this.accounts = accountsResult;
-                super.deliverResult(accountsResult);
-            }
-
-            @Override
-            protected void onForceLoad() {
-                super.onForceLoad();
-
-                RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-
-                AccountsRequest accountsRequest = new AccountsRequest(new Response.Listener<List<Account>>() {
-                    @Override
-                    public void onResponse(List<Account> response) {
-                        deliverResult(response);
-                        mLoadingIndicator.setVisibility(View.INVISIBLE);
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        showErrorMessage();
-                        mLoadingIndicator.setVisibility(View.INVISIBLE);
-                    }
-                });
-
-                queue.add(accountsRequest);
-
-            }
-        };
+        return new AccountsLoader(this);
     }
 
     @Override
@@ -158,7 +117,11 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
         mLoadingIndicator.setVisibility(View.INVISIBLE);
         mAccountAdapter.setAccountsData(data);
         if(null == data) {
-            showErrorMessage();
+            if(!sharedPreferences.contains(TOKEN_KEY)) {
+                goToLogin();
+            } else {
+                showErrorMessage();
+            }
         } else {
             showAccountsView();
         }
@@ -169,10 +132,17 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
 
     }
 
+    private void goToLogin() {
+        Class destinationClass = LoginActivity.class;
+        Intent intent = new Intent(getApplicationContext(), destinationClass);
+        startActivity(intent);
+        finish();
+    }
+
     private void showAccountsView() {
         /* First, make sure the error is invisible */
         mErrorMessageDisplay.setVisibility(View.INVISIBLE);
-        /* Then, make sure the weather data is visible */
+        /* Then, make sure the account data is visible */
         mRecyclerView.setVisibility(View.VISIBLE);
     }
 
@@ -183,30 +153,5 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
         mErrorMessageDisplay.setVisibility(View.VISIBLE);
     }
 
-    private class AccountsRequest extends JsonRequest<List<Account>> {
-        private static final String URL = "https://lavaeolus.herokuapp.com/api/accounts";
 
-        @Override
-        public Map<String, String> getHeaders() throws AuthFailureError {
-            Map<String, String> headers = new HashMap<>(super.getHeaders());
-            headers.put("X-Auth-Token", PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("token", ""));
-            return headers;
-        }
-
-        AccountsRequest(Response.Listener<List<Account>> listener, Response.ErrorListener errorListener) {
-            super(Method.GET, URL, null, listener, errorListener);
-        }
-
-        @Override
-        protected Response<List<Account>> parseNetworkResponse(NetworkResponse response) {
-            try {
-                Gson gson = new Gson();
-                String json = new String(response.data, HttpHeaderParser.parseCharset(response.headers));
-                List<Account> accountsResult = gson.fromJson(json,  new TypeToken<List<Account>>(){}.getType());
-                return Response.success(accountsResult, HttpHeaderParser.parseCacheHeaders(response));
-            } catch (UnsupportedEncodingException e) {
-                return Response.error(new VolleyError(e));
-            }
-        }
-    }
 }

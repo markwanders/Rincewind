@@ -65,6 +65,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      */
     private static final int REQUEST_READ_CONTACTS = 0;
 
+    private static final String TOKEN_KEY = "token";
+
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
@@ -75,33 +77,38 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        setContentView(R.layout.activity_login);
-        // Set up the login form.
-        mEmailView = findViewById(R.id.email);
-        populateAutoComplete();
 
-        mPasswordView = findViewById(R.id.password);
-        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
-                    return true;
+        if(sharedPreferences.contains(TOKEN_KEY)) {
+            proceed();
+        } else {
+            setContentView(R.layout.activity_login);
+            // Set up the login form.
+            mEmailView = findViewById(R.id.email);
+            populateAutoComplete();
+
+            mPasswordView = findViewById(R.id.password);
+            mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                @Override
+                public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
+                    if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
+                        attemptLogin();
+                        return true;
+                    }
+                    return false;
                 }
-                return false;
-            }
-        });
+            });
 
-        Button mEmailSignInButton = findViewById(R.id.email_sign_in_button);
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                attemptLogin();
-            }
-        });
+            Button mEmailSignInButton = findViewById(R.id.email_sign_in_button);
+            mEmailSignInButton.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    attemptLogin();
+                }
+            });
 
-        mLoginFormView = findViewById(R.id.login_form);
-        mProgressView = findViewById(R.id.login_progress);
+            mLoginFormView = findViewById(R.id.login_form);
+            mProgressView = findViewById(R.id.login_progress);
+        }
     }
 
     private void populateAutoComplete() {
@@ -199,15 +206,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                         @Override
                         public void onResponse(String response) {
                             showProgress(false);
-
-                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                            editor.putString("token", response);
-                            editor.apply();
-
-                            Class destinationClass = MainActivity.class;
-                            Intent intent = new Intent(getApplicationContext(), destinationClass);
-                            startActivity(intent);
-                            finish();
+                            setToken(response);
+                            proceed();
                         }
                     }, new Response.ErrorListener() {
                 @Override
@@ -221,6 +221,19 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // Add the request to the RequestQueue.
             queue.add(loginRequest);
         }
+    }
+
+    private void setToken(String token) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(TOKEN_KEY, token);
+        editor.apply();
+    }
+
+    private void proceed() {
+        Class destinationClass = MainActivity.class;
+        Intent intent = new Intent(getApplicationContext(), destinationClass);
+        startActivity(intent);
+        finish();
     }
 
     private boolean isEmailValid(String email) {

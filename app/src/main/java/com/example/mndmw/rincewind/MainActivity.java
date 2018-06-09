@@ -207,7 +207,6 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
             } catch (UnsupportedEncodingException e) {
                 return Response.error(new VolleyError(e));
             }
-
         }
     }
 }

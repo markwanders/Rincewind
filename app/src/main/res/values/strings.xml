@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Rincewind</string>
-    <string name="get">Get</string>
+    <string name="reload">Reload</string>
+    <string name="logout">Logout</string>
     <string name="address">Address</string>
     <string name="balance">Balance</string>
     <string name="ether">ether</string>
@@ -10,4 +11,20 @@
     <string name="account">Account</string>
     <string name="error_message">An error has occurred. Please try again</string>
     <string name="last_updated">Last updated: %s</string>
+    <string name="title_activity_login">Sign in</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="prompt_email">Email</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
+    <string name="title_activity_transactions">Transactions</string>
+    <string name="title_activity_accounts">Accounts</string>
 </resources>

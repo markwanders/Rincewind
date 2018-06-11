@@ -2,10 +2,11 @@ package com.example.mndmw.rincewind;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.AsyncTaskLoader;
-import android.support.v4.content.Loader;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,16 +15,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.mndmw.rincewind.domain.Account;
-import com.example.mndmw.rincewind.utilities.NetworkUtils;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements AccountAdapter.AccountClickListener, LoaderManager.LoaderCallbacks<List<Account>> {
@@ -36,13 +30,15 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
 
     private TextView mErrorMessageDisplay;
 
-    private final static String ACCOUNTS = "accounts";
-
     private static final String TYPE = "type";
 
     private static final String ID = "id";
 
+    private static final String TOKEN_KEY = "token";
+
     private static final int ACCOUNTS_LOADER_ID = 0;
+
+    private static SharedPreferences sharedPreferences;
 
 
     @Override
@@ -50,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.rv_accounts);
+        mRecyclerView = findViewById(R.id.rv_accounts);
 
         LinearLayoutManager linearLayoutManager
                 = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
@@ -63,11 +59,13 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
 
         mRecyclerView.setAdapter(mAccountAdapter);
 
-        mLoadingIndicator = (ProgressBar) findViewById(R.id.loading_indicator);
+        mLoadingIndicator = findViewById(R.id.loading_indicator);
 
-        mErrorMessageDisplay = (TextView) findViewById(R.id.tv_error_message_display);
+        mErrorMessageDisplay = findViewById(R.id.tv_error_message_display);
 
         LoaderManager.LoaderCallbacks<List<Account>> callback = MainActivity.this;
+
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         getSupportLoaderManager().initLoader(ACCOUNTS_LOADER_ID, null, callback);
     }
@@ -83,6 +81,13 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
         int selectedMenuItem = menuItem.getItemId();
         if(selectedMenuItem == R.id.action_get) {
             getSupportLoaderManager().restartLoader(ACCOUNTS_LOADER_ID, null, this);
+            return true;
+        }
+        if(selectedMenuItem == R.id.action_logout) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.remove(TOKEN_KEY);
+            editor.apply();
+            goToLogin();
             return true;
         }
         return super.onOptionsItemSelected(menuItem);
@@ -102,47 +107,9 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
 
     @Override
     public Loader<List<Account>> onCreateLoader(int id, final Bundle args) {
-        return new AsyncTaskLoader<List<Account>>(this) {
-            List<Account> accounts = null;
+        mLoadingIndicator.setVisibility(View.VISIBLE);
 
-            @Override
-            protected void onStartLoading() {
-                if (accounts == null) {
-                    mLoadingIndicator.setVisibility(View.VISIBLE);
-                    forceLoad();
-                } else {
-                    deliverResult(accounts);
-                }
-            }
-
-            @Override
-            public List<Account> loadInBackground() {
-                URL url;
-                if(args != null && args.containsKey(TYPE)) {
-                    url = NetworkUtils.buildUrl(ACCOUNTS, args.getString(TYPE));
-                } else {
-                    url = NetworkUtils.buildUrl(ACCOUNTS);
-                }
-                String resultString = null;
-                List<Account> accounts = new ArrayList<>();
-                try {
-                    resultString = NetworkUtils.getResponseFromHttpUrl(url);
-                    Gson gson = new Gson();
-                    List<Account> accountsResult = gson.fromJson(resultString,  new TypeToken<List<Account>>(){}.getType());
-                    if (accountsResult != null) {
-                        accounts.addAll(accountsResult);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return accounts;
-            }
-
-            public void deliverResult(List<Account> accountsResult) {
-                this.accounts = accountsResult;
-                super.deliverResult(accountsResult);
-            }
-        };
+        return new AccountsLoader(this);
     }
 
     @Override
@@ -150,7 +117,11 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
         mLoadingIndicator.setVisibility(View.INVISIBLE);
         mAccountAdapter.setAccountsData(data);
         if(null == data) {
-            showErrorMessage();
+            if(!sharedPreferences.contains(TOKEN_KEY)) {
+                goToLogin();
+            } else {
+                showErrorMessage();
+            }
         } else {
             showAccountsView();
         }
@@ -161,10 +132,17 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
 
     }
 
+    private void goToLogin() {
+        Class destinationClass = LoginActivity.class;
+        Intent intent = new Intent(getApplicationContext(), destinationClass);
+        startActivity(intent);
+        finish();
+    }
+
     private void showAccountsView() {
         /* First, make sure the error is invisible */
         mErrorMessageDisplay.setVisibility(View.INVISIBLE);
-        /* Then, make sure the weather data is visible */
+        /* Then, make sure the account data is visible */
         mRecyclerView.setVisibility(View.VISIBLE);
     }
 
@@ -174,5 +152,6 @@ public class MainActivity extends AppCompatActivity implements AccountAdapter.Ac
         /* Then, show the error */
         mErrorMessageDisplay.setVisibility(View.VISIBLE);
     }
+
 
 }

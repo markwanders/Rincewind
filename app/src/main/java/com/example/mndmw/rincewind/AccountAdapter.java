@@ -59,6 +59,7 @@ public class AccountAdapter extends RecyclerView.Adapter<AccountAdapter.AccountA
         mAccountData = accountData;
         notifyDataSetChanged();
     }
+
     void setAccountData(Account account) {
         for(int i = 0; i < mAccountData.size(); i++) {
             if(mAccountData.get(i).getType().equals(account.getType())) {
